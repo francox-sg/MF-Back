@@ -1,15 +1,22 @@
 import { mysqlPatientCRUD } from "../mysql/patient.dao.js";
+import { dateFrontToBack, dateBackToFront } from "../utils/DateConverter.js";
 
 class patientControllerClass{
     
     //Obtener todos los pacientes
     async getAllPatients(req, res){
         
-        const patients = await mysqlPatientCRUD.getAllPatients()
+        let patients = await mysqlPatientCRUD.getAllPatients()
+        
         
         if(patients == null){
             return res.json({data: null, msj: "Error al intentar obtener los Pacientes"})
         }
+
+        //Parseo de Fechas 
+        patients.forEach(patient => {
+            patient.birth && (patient.birth = dateBackToFront(patient.birth))
+        });
         return res.json({data: patients, msj: "Transaccion Exitosa"})
 
     }
@@ -22,7 +29,7 @@ class patientControllerClass{
             return res.json({data: null, msj: "Debe indicar dni"})
         }
 
-        const patient = await mysqlPatientCRUD.getPatientByDni(Number(dni))
+        let patient = await mysqlPatientCRUD.getPatientByDni(Number(dni))
         
         if(patient == -1){
             return res.json({data: -1, msj: "No se encontro el paciente"})
@@ -30,6 +37,8 @@ class patientControllerClass{
         if(patient == null){
             return res.json({data: null, msj: "Error al intentar obtener el paciente"})
         }
+        //Parseo de Fecha
+        patient.birth && (patient.birth = dateBackToFront(patient.birth))
 
         return res.json({data: patient, msj: "Transaccion Exitosa"})
 
@@ -43,14 +52,17 @@ class patientControllerClass{
             return res.json({data: null, msj: "Debe indicar id"})
         }
 
-        const patient = await mysqlPatientCRUD.getPatientById(Number(id))
-        
+        let patient = await mysqlPatientCRUD.getPatientById(Number(id))
+
         if(patient == -1){
             return res.json({data: -1, msj: "No se encontro el paciente"})
         }
         if(patient == null){
             return res.json({data: null, msj: "Error al intentar obtener el paciente"})
         }
+
+        //Parseo de Fecha
+        patient.birth && (patient.birth = dateBackToFront(patient.birth))
 
         return res.json({data: patient, msj: "Transaccion Exitosa"})
 
@@ -60,7 +72,7 @@ class patientControllerClass{
     async getPatientByFilters(req, res){
         const {name, lastname, dni} = req.body
         let patients= []
-        //console.log("entro");
+        
         
         if(!name && !lastname && !dni){
             console.log("No hay Filtros, se devuelven todos los pacientes");
@@ -84,17 +96,24 @@ class patientControllerClass{
             return res.json({data: null, msj: "Error al intentar obtener los pacientes filtrados"})
         }
 
+        //Parseo de fecha
+        patients.forEach(patient => {
+            patient.birth && (patient.birth = dateBackToFront(patient.birth))
+        });
         return res.json({data: patients, msj: "Transaccion Exitosa"})
 
     }
 
     //Agregar Paciente
     async addPatient(req, res){
-        const newPatient = req.body
+        let newPatient = req.body
         
         if(!newPatient.dni || !newPatient.name){
             return res.json({data: null, msj: "Debe indicar dni y nombre"})
         }
+
+        newPatient.birth && (newPatient.birth = dateFrontToBack(newPatient.birth))
+        newPatient.gender && (newPatient.gender = String(newPatient.gender))
 
         const newPatientDB = await mysqlPatientCRUD.addPatient(newPatient)
         
@@ -111,13 +130,17 @@ class patientControllerClass{
 
     //Modificar Paciente por DNI
     async updatePatientByDni(req, res){
-        const newPatient = req.body
+        let newPatient = req.body
         
         if(!newPatient.dni){
             return res.json({data: null, msj: "Debe indicar dni"})
         }
 
-        const updatedPatientDB = await mysqlPatientCRUD.updatePatientByDni(newPatient)
+        //Parseo de fecha
+        newPatient.birth && (newPatient.birth = dateFrontToBack(newPatient.birth))
+        newPatient.gender && (newPatient.gender = String(newPatient.gender))
+
+        let updatedPatientDB = await mysqlPatientCRUD.updatePatientByDni(newPatient)
         
         if(updatedPatientDB == -1){
             return res.json({data: -1, msj: `No existe el paciente con dni ${newPatient.dni}`})
@@ -125,6 +148,9 @@ class patientControllerClass{
         if(updatedPatientDB == null){
             return res.json({data: null, msj: "Error al intentar actualizar el paciente"})
         }
+
+        //Parseo de Fecha
+        updatedPatientDB.birth && (updatedPatientDB.birth = dateBackToFront(updatedPatientDB.birth))
 
         return res.json({data: updatedPatientDB, msj: "Transaccion Exitosa"})
 
