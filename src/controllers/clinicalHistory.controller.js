@@ -1,6 +1,6 @@
 import { mysqlClinicalHistoryCRUD } from "../mysql/clinical_history.dao.js";
 import { mysqlPatientCRUD } from "../mysql/patient.dao.js";
-
+import { dateFrontToBack, dateBackToFrontConHora } from "../utils/DateConverter.js";
 
 
 
@@ -9,11 +9,18 @@ class clinicalHistoryControllerClass{
     //Obtener todas las HC
     async getAllclinicalHistorys(req, res){
         
-        const clinicalHistorys = await mysqlClinicalHistoryCRUD.getAllClinicalHistorys()
+        let clinicalHistorys = await mysqlClinicalHistoryCRUD.getAllClinicalHistorys()
         
+        
+
         if(clinicalHistorys == null){
             return res.json({data: null, msj: "Error al intentar obtener las HC"})
         }
+
+        //Parseo de Fecha
+        clinicalHistorys.forEach(clinicalHistory=>{
+            clinicalHistory.date = dateBackToFrontConHora(clinicalHistory.date)
+        })
         return res.json({data: clinicalHistorys, msj: "Transaccion Exitosa"})
 
     }
@@ -26,7 +33,7 @@ class clinicalHistoryControllerClass{
             return res.json({data: null, msj: "Debe indicar el ID de la HC"})
         }
 
-        const clinicalHistoryDB = await mysqlClinicalHistoryCRUD.getClinicalHistoryById(id)
+        let clinicalHistoryDB = await mysqlClinicalHistoryCRUD.getClinicalHistoryById(id)
         
         if(clinicalHistoryDB == -1){
             return res.json({data: -1, msj: "No se encontro la HC"})
@@ -35,6 +42,8 @@ class clinicalHistoryControllerClass{
             return res.json({data: null, msj: "Error al intentar obtener la HC"})
         }
 
+        //Parseo de Fecha
+        clinicalHistoryDB.date = dateBackToFrontConHora(clinicalHistoryDB.date)
         return res.json({data: clinicalHistoryDB, msj: "Transaccion Exitosa"})
 
     }
@@ -46,7 +55,7 @@ class clinicalHistoryControllerClass{
             return res.json({data: null, msj: "Debe indicar el ID del paciente"})
         }
 
-        const clinicalHistoryDB = await mysqlClinicalHistoryCRUD.getClinicalHistoryByPatientId(pid)
+        let clinicalHistoryDB = await mysqlClinicalHistoryCRUD.getClinicalHistoryByPatientId(pid)
         
         if(clinicalHistoryDB == -1){
             return res.json({data: -1, msj: "No se encontro la HC"})
@@ -55,6 +64,10 @@ class clinicalHistoryControllerClass{
             return res.json({data: null, msj: "Error al intentar obtener la HC"})
         }
 
+        //Parseo de Fecha
+        clinicalHistoryDB.forEach(clinicalHistory=>{
+            clinicalHistory.date = dateBackToFrontConHora(clinicalHistory.date)
+        })
         return res.json({data: clinicalHistoryDB, msj: "Transaccion Exitosa"})
 
     }
@@ -84,23 +97,32 @@ class clinicalHistoryControllerClass{
     async addClinicalHistory(req, res){
         let newClinicalHistory = req.body
 
-        // Agrego al fecha
-        let fecha = new Date();
+        if(newClinicalHistory.date == undefined){ //Agrego Fecha Por defecto
+            // Agrego al fecha
+            let fecha = new Date();
 
-        // Obtener el año, mes y día
-        let año = fecha.getFullYear();
-        let mes = fecha.getMonth() + 1;  // Los meses son base 0, por eso sumamos 1
-        let dia = fecha.getDate();
-    
-        // Asegurarse de que el mes y el día tengan dos dígitos (por ejemplo, 09 en lugar de 9)
-        mes = mes < 10 ? '0' + mes : mes;
-        dia = dia < 10 ? '0' + dia : dia;
-    
-        // Formatear la fecha como YYYY-MM-DD
-        let fechaFormateada = `${año}-${mes}-${dia}`;
+            // Obtener el año, mes y día
+            let año = fecha.getFullYear();
+            let mes = fecha.getMonth() + 1;  // Los meses son base 0, por eso sumamos 1
+            let dia = fecha.getDate();
+            let hora = fecha.getHours();
+            let minutos = fecha.getMinutes();
+            let segundos = "00";
         
-        newClinicalHistory.date = fechaFormateada
-
+        
+        
+        
+            // Asegurarse de que el mes y el día tengan dos dígitos (por ejemplo, 09 en lugar de 9)
+            mes = mes < 10 ? '0' + mes : mes;
+            dia = dia < 10 ? '0' + dia : dia;
+        
+            // Formatear la fecha como YYYY-MM-DD
+            let fechaFormateada = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}`;
+            
+            newClinicalHistory.date = fechaFormateada
+        }else{
+            newClinicalHistory.date = dateFrontToBack(newClinicalHistory.date)
+        }
 
 
         if(!newClinicalHistory.patient_id){
@@ -124,13 +146,15 @@ class clinicalHistoryControllerClass{
 
     //Modificar HC por ID
     async updateClinicalHistoryById(req, res){
-        const newClinicalHistory = req.body
+        let newClinicalHistory = req.body
         
         if(!newClinicalHistory.id){
             return res.json({data: null, msj: "Debe indicar el id"})
         }
 
-        const updatedclinicalHistoryDB = await mysqlClinicalHistoryCRUD.updateClinicalHistoryById(newClinicalHistory)
+        //Parseo de Fecha hacia Back
+        newClinicalHistory.date = dateFrontToBack(newClinicalHistory.date)
+        let updatedclinicalHistoryDB = await mysqlClinicalHistoryCRUD.updateClinicalHistoryById(newClinicalHistory)
         
         if(updatedclinicalHistoryDB == -1){
             return res.json({data: -1, msj: `No existe la HC con ID ${newClinicalHistory.id}`})
@@ -139,6 +163,8 @@ class clinicalHistoryControllerClass{
             return res.json({data: null, msj: "Error al intentar actualizar la HC"})
         }
 
+        //Parseo de Fecha hacia Front
+        updatedclinicalHistoryDB.date = dateBackToFrontConHora(updatedclinicalHistoryDB.date)
         return res.json({data: updatedclinicalHistoryDB, msj: "Transaccion Exitosa"})
 
     }
