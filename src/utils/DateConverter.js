@@ -50,10 +50,13 @@ export const dateBackToFront = (dateBack) => {
     */
     
     const fecha = new Date(dateBack)
-    const dia = fecha.getDate()
-    const mes = fecha.getMonth() +1 //Los meses los devuelve desde el cero
+    let dia = fecha.getDate()
+    let mes = fecha.getMonth() +1 //Los meses los devuelve desde el cero
     const año = fecha.getFullYear()
     
+    dia      < 10 && (dia      = `0${String(dia)}`)
+    mes      < 10 && (mes      = `0${String(mes)}`)
+
     const dateFront = `${dia}/${mes}/${año}`
     //console.log(dateFront);
     
@@ -66,18 +69,26 @@ export const dateBackToFrontConHora = (dateBack) => {
     */
     
     const fecha = new Date(dateBack)
-    const dia = fecha.getDate()
-    const mes = fecha.getMonth() +1 //Los meses los devuelve desde el cero
-    const año = fecha.getFullYear()
-    const hora = fecha.getHours()
-    const minutos = fecha.getMinutes()
-    const segundos = fecha.getSeconds()
-    
+    let dia = fecha.getDate()
+    let mes = fecha.getMonth() +1 //Los meses los devuelve desde el cero
+    let año = fecha.getFullYear()
+    let hora = fecha.getHours()
+    let minutos = fecha.getMinutes()
+    let segundos = fecha.getSeconds()
+
+    dia      < 10 && (dia      = `0${String(dia)}`)
+    mes      < 10 && (mes      = `0${String(mes)}`)
+    hora     < 10 && (hora     = `0${String(hora)}`)
+    minutos  < 10 && (minutos  = `0${String(minutos)}`)
+    segundos < 10 && (segundos = `0${String(segundos)}`)
+
+
     const dateFront = `${dia}/${mes}/${año} ${hora}:${minutos}:${segundos}`
     //console.log(dateFront);
     
     return dateFront
 }
+
 
 
 
