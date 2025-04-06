@@ -19,7 +19,10 @@ router.get('/:id', patientController.getPatientById)
 router.post('/', patientController.addPatient)
 
 //Actualizar Paciente por dni
-router.put('/', patientController.updatePatientByDni)
+//router.put('/', patientController.updatePatientByDni)
+
+//Actualizar Paciente por id
+router.put('/', patientController.updatePatientById)
 
 //Borrar Paciente por dni
 router.delete('/:dni', patientController.deletePatientByDni)

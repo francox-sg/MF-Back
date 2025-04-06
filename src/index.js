@@ -18,8 +18,11 @@ app.use('/socialsecurity', socialSecurityRouter)
 app.use('/clinicalHistory', clinicalHistoryRouter)
 
 app.listen(PORT, ()=>{
-    console.log(`Servidor listo en puerto ${PORT}`);
-    
+   console.log(`
+      Servidor medicalForm listo en puerto ${PORT}
+      Version 1.0
+      `);
+   
 })
 
 // npm run build

@@ -19,7 +19,7 @@ class mysqlPatientCRUDClass{
             return data[0]
             
         } catch (error) {
-            console.log("Error en getPatientByDni: ", error.sqlMessage);
+            /* console.log("Error en getPatientByDni: ", error.sqlMessage); */
             return null
         }
     }
@@ -217,6 +217,53 @@ class mysqlPatientCRUDClass{
             
         } catch (error) {
             console.log("Error en updatePatientByDni: ", error.sqlMessage);
+            console.log(error);
+            return null
+            
+        }
+    }
+
+    //Actualizar Paciente por ID
+    async updatePatientById(patientData, server = "localhost", database="medicalform"){
+
+        if(!patientData.id){
+            console.log("Debe indicar un ID valido:", patientData.id);
+            return null
+        }
+
+        try {
+            //Existencia de ese paciente
+            const pacienteDB = await this.getPatientById(patientData.id)
+            const patientID = patientData.id;
+
+            if(!pacienteDB){
+                console.log("No existe el Paciente ", patientData.id);
+                return -1
+            }
+
+            delete patientData.id
+
+            //Valores a actualizar
+            let updates = ''
+            let keys = Object.keys(patientData) //Devuelve las claves del objeto en un array
+
+            keys.forEach(key => {
+                if(patientData[key]){
+                    if(updates.length != 0){
+                        updates    += ", "
+                    }
+                    updates    += `${key} = '${patientData[key]}'`
+                }                
+            });
+            
+            const pool = poolHandler(server, database)
+            const data = await pool.promise().execute(`update pacientes SET ${updates} WHERE id = ${patientID}`);
+            
+            const updatedPatient = await this.getPatientById(patientID)
+            return updatedPatient
+            
+        } catch (error) {
+            console.log("Error en updatePatientById: ", error.sqlMessage);
             console.log(error);
             return null
             

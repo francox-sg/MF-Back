@@ -156,6 +156,36 @@ class patientControllerClass{
 
     }
 
+    //Modificar Paciente por ID
+    async updatePatientById(req, res){
+        let newPatient = req.body
+        
+        console.log("UPDATE POR ID ROUTE, new patient es: ", newPatient);
+        
+        if(!newPatient.id){
+            return res.json({data: null, msj: "Debe indicar id"})
+        }
+
+        //Parseo de fecha
+        newPatient.birth && (newPatient.birth = dateFrontToBack(newPatient.birth))
+        newPatient.gender && (newPatient.gender = String(newPatient.gender))
+
+        let updatedPatientDB = await mysqlPatientCRUD.updatePatientById(newPatient)
+        
+        if(updatedPatientDB == -1){
+            return res.json({data: -1, msj: `No existe el paciente con ID ${newPatient.id}`})
+        }
+        if(updatedPatientDB == null){
+            return res.json({data: null, msj: "Error al intentar actualizar el paciente"})
+        }
+
+        //Parseo de Fecha
+        updatedPatientDB.birth && (updatedPatientDB.birth = dateBackToFront(updatedPatientDB.birth))
+
+        return res.json({data: updatedPatientDB, msj: "Transaccion Exitosa"})
+
+    }
+
     //Borrar Paciente por DNI
     async deletePatientByDni(req, res){
         const {dni} = req.params
